@@ -1,0 +1,39 @@
+tautec-platform/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.js ✅ (جاهز)
+│   │   ├── controllers/
+│   │   │   ├── authController.js ✅ (جاهز)
+│   │   │   ├── courseController.js ⚠️ (ستنشئه)
+│   │   │   ├── studentController.js ⚠️
+│   │   │   ├── instructorController.js ⚠️
+│   │   │   ├── clientController.js ⚠️
+│   │   │   └── adminController.js ⚠️
+│   │   ├── middleware/
+│   │   │   ├── auth.middleware.js ✅ (جاهز)
+│   │   │   └── errorHandler.js ⚠️
+│   │   ├── routes/
+│   │   │   ├── backend/src/routes/auth.routes.js ✅ (جاهز)
+│   │   │   ├── courses.routes.js ⚠️
+│   │   │   ├── students.routes.js ⚠️
+│   │   │   ├── instructors.routes.js ⚠️
+│   │   │   ├── clients.routes.js ⚠️
+│   │   │   ├── admin.routes.js ⚠️
+│   │   │   ├── messages.routes.js ⚠️
+│   │   │   └── notifications.routes.js ⚠️
+│   │   └── services/
+│   │       └── emailService.js ⚠️
+│   ├── uploads/ (سيُنشأ تلقائياً)
+│   ├── .env ✅
+│   ├── package.json ✅ (جاهز)
+│   └── server.js ✅ (جاهز)
+├── frontend/
+│   └── public/
+│       ├── index.html ⚠️
+│       ├── login.html ⚠️
+│       ├── register.html ⚠️
+│       ├── dashboard.html ⚠️
+│       └── css/
+│           └── style.css ⚠️
+└── database_schema.sql ✅ (جاهز)
