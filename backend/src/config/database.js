@@ -1,18 +1,15 @@
 // ============================================================================
-// src/config/database.js - MySQL Connection Pool Setup (using 'mysql2')
+// src/config/database.js - PostgreSQL Connection Pool Setup (using 'pg')
 // ============================================================================
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 
 // 1. إنشاء مجمع الاتصالات (Connection Pool)
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'tautec_platform',
-    port: process.env.DB_PORT || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+const pool = new Pool({
+    // استخدام الـ Connection String لـ Supabase
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:123456789@db.fzqcjxgmsbbucdbcklzg.supabase.co:5432/postgres',
+    ssl: {
+        rejectUnauthorized: false // مطلوب لـ Supabase
+    }
 });
 
 /**
@@ -20,10 +17,10 @@ const pool = mysql.createPool({
  */
 exports.testConnection = async () => {
     try {
-        const connection = await pool.getConnection();
-        await connection.query('SELECT 1'); // استعلام بسيط للتحقق
-        connection.release();
-        console.log('✅ Database connection successful! (MySQL)');
+        const client = await pool.connect();
+        await client.query('SELECT 1'); // استعلام بسيط للتحقق
+        client.release();
+        console.log('✅ Database connection successful! (PostgreSQL/Supabase)');
         return true;
     } catch (error) {
         console.error('❌ Database connection failed:', error.message);
@@ -35,26 +32,37 @@ exports.testConnection = async () => {
 // 2. دوال مساعدة لتنفيذ الاستعلامات (SQL Query Helpers)
 // =======================================================
 
+// دالة مساعدة لتحويل علامات الاستفهام (?) إلى $1, $2, ...
+const formatPostgresQuery = (sql) => {
+    let index = 1;
+    return sql.replace(/\?/g, () => `$${index++}`);
+};
+
 /**
  * دالة لتنفيذ أي استعلام SQL (INSERT, UPDATE, DELETE, SELECT)
  */
 exports.query = async (sql, params = []) => {
     try {
-        const isInsert = sql.trim().toUpperCase().startsWith('INSERT');
+        let formattedSql = formatPostgresQuery(sql);
+        const isInsert = formattedSql.trim().toUpperCase().startsWith('INSERT');
         
-        // تنفيذ الاستعلام باستخدام mysql2
-        const [rows, fields] = await pool.query(sql, params);
+        // إذا كان الاستعلام INSERT، نتأكد من إضافة RETURNING ID
+        if (isInsert && !formattedSql.toUpperCase().includes('RETURNING')) {
+            formattedSql += ' RETURNING id'; 
+        }
+
+        const result = await pool.query(formattedSql, params);
         
-        // محاكاة نتيجة MySQL (insertId) لتناسق مع طبقة الموديل
+        // محاكاة نتيجة MySQL (insertId) لعدم كسر طبقة الموديل
         if (isInsert) {
             return { 
-                insertId: rows.insertId || null,
-                rows: rows
+                insertId: result.rows.length > 0 ? result.rows[0].id : null,
+                rows: result.rows 
             };
         }
         
         // إرجاع مصفوفة الصفوف لـ SELECT, UPDATE, DELETE
-        return rows;
+        return result.rows;
     } catch (error) {
         console.error('Database query error:', error.message);
         throw error;
@@ -65,15 +73,11 @@ exports.query = async (sql, params = []) => {
  * دالة لتنفيذ استعلام يتوقع صفًا واحداً فقط
  */
 exports.queryOne = async (sql, params = []) => {
-    try {
-        const [rows, fields] = await pool.query(sql, params);
-        
-        // إرجاع الصف الأول أو null
-        return rows.length > 0 ? rows[0] : null;
-    } catch (error) {
-        console.error('Database query error:', error.message);
-        throw error;
-    }
+    let formattedSql = formatPostgresQuery(sql);
+    const result = await pool.query(formattedSql, params);
+    
+    // إرجاع الصف الأول أو null
+    return result.rows.length > 0 ? result.rows[0] : null;
 };
 
 // تصدير المجمع للاستخدام المباشر إذا لزم الأمر

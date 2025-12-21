@@ -1,7 +1,7 @@
 {
   "name": "tautec-platform-backend",
   "version": "1.0.0",
-  "description": "TauTec Educational Platform Backend - Node.js/Express/MySQL",
+  "description": "TauTec Educational Platform Backend - Node.js/Express/PostgreSQL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -26,6 +26,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "mysql2": "^3.16.0",
+    "pg": "^8.16.3",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
