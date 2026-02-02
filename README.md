@@ -15,17 +15,6 @@
 *   **Student Enrollment**: Students can browse the catalog, enroll in courses, and track their progress.
 *   **Assessment**: Integrated quizzes and assignment submissions.
 *   **Multimedia Support**: Video lessons, text content, and file downloads.
-
-### 💼 Client Service Portal
-*   **Project Requests**: Clients can submit requests for technical services (e.g., Data Analysis, Web Dev).
-*   **Status Tracking**: Real-time updates on project status (Submitted → In Progress → Completed).
-*   **Communication**: Direct messaging between clients and administrators.
-
-### 🛠️ Admin Dashboard
-*   **User Management**: Control user roles (Admin, Instructor, Student, Client).
-*   **Content Oversight**: Approve courses and monitor platform activity.
-*   **System Settings**: Configure platform-wide settings.
-
 ---
 
 ## 🏗️ Technology Stack
@@ -77,14 +66,7 @@ Start the server:
 ```bash
 npm run dev
 # Server will start on http://localhost:3000
-```
 
-### 4. Client Setup (Frontend)
-The frontend is built with static HTML/JS files located in the `frontend` directory.
-*   Simply open `frontend/public/index.html` (or the respective landing page) in your browser.
-*   *Note: For better performance and to avoid CORS issues, it is recommended to serve the frontend using a live server (e.g., VS Code Live Server extension).*
-
----
 
 ## 🤝 Contributing
 1.  Fork the repository.
@@ -92,8 +74,3 @@ The frontend is built with static HTML/JS files located in the `frontend` direct
 3.  Commit your changes (`git commit -m 'Add some feature'`).
 4.  Push to the branch (`git push origin feature/YourFeature`).
 5.  Open a Pull Request.
-
----
-
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
