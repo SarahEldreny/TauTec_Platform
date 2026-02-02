@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Lesson - TauTec</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        main { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 100px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-row button { flex: 1; }
+        .error-alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .success-alert { background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        h1 { color: #0891b2; margin-bottom: 10px; }
+        .back-link { color: #0891b2; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .back-link:hover { text-decoration: underline; }
+        .toggle-row { display: flex; align-items: center; gap: 10px; }
+        .toggle-row input { width: auto; }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="#" class="back-link" id="backLink">Back to Course</a>
+        <div class="card">
+            <h1>Create Lesson</h1>
+            <div class="error-alert" id="errorAlert"></div>
+            <div class="success-alert" id="successAlert"></div>
+            <form id="lessonForm">
+                <div class="form-group">
+                    <label for="title">Lesson Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g., Introduction video">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lessonType">Lesson Type *</label>
+                        <select id="lessonType" name="lessonType" required>
+                            <option value="video">Video</option>
+                            <option value="text">Text</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="duration">Duration (minutes)</label>
+                        <input type="number" id="duration" name="duration" min="0" placeholder="e.g., 15">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="videoUrl">Video URL (optional)</label>
+                    <input type="text" id="videoUrl" name="videoUrl" placeholder="https://example.com/video.mp4">
+                </div>
+                <div class="form-group">
+                    <label for="lessonFiles">Lesson Files (optional)</label>
+                    <input type="file" id="lessonFiles" name="lessonFiles" multiple accept=".pdf,.doc,.docx,.ppt,.pptx">
+                    <small style="color:#64748b;">Allowed: PDF, DOC/DOCX, PPT/PPTX</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="orderIndex">Order (optional)</label>
+                        <input type="number" id="orderIndex" name="orderIndex" min="1" placeholder="Leave empty for auto">
+                    </div>
+                    <div class="form-group">
+                        <label>Free Lesson</label>
+                        <div class="toggle-row">
+                            <input type="checkbox" id="isFree">
+                            <label for="isFree" style="margin: 0; font-weight: 500;">Yes, make it free</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Lesson</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams(window.location.search);
+        const courseId = params.get('courseId');
+        const moduleId = params.get('moduleId');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        if (!courseId || !moduleId) {
+            document.getElementById('errorAlert').textContent = 'Course or module ID not provided.';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+
+        const backUrl = courseId ? `/course-edit.html?id=${courseId}` : '/instructor-dashboard.html';
+        document.getElementById('backLink').href = backUrl;
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = backUrl;
+        });
+
+        document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value.trim();
+            const lessonType = document.getElementById('lessonType').value;
+            const durationValue = document.getElementById('duration').value.trim();
+            const videoUrl = document.getElementById('videoUrl').value.trim();
+            const orderValue = document.getElementById('orderIndex').value.trim();
+            const isFree = document.getElementById('isFree').checked;
+
+            const payload = {
+                title,
+                lesson_type: lessonType || 'video',
+                duration: durationValue ? parseInt(durationValue, 10) : null,
+                order_index: orderValue ? parseInt(orderValue, 10) : null,
+                video_url: videoUrl || null,
+                is_free: isFree
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/courses/modules/${moduleId}/lessons`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    const lessonId = data.data && data.data.lessonId;
+                    const filesInput = document.getElementById('lessonFiles');
+                    const files = filesInput ? Array.from(filesInput.files || []) : [];
+
+                    if (lessonId && files.length > 0) {
+                        let uploaded = 0;
+                        for (const file of files) {
+                            const formData = new FormData();
+                            formData.append('lessonId', lessonId);
+                            formData.append('title', file.name);
+                            formData.append('file', file);
+
+                            const uploadRes = await fetch(`${API_URL}/instructor/materials`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: formData
+                            });
+
+                            const uploadData = await uploadRes.json();
+                            if (!uploadData.success) {
+                                throw new Error(uploadData.message || 'Failed to upload lesson files');
+                            }
+                            uploaded += 1;
+                        }
+
+                        document.getElementById('successAlert').textContent = `Lesson created successfully! ${uploaded} file(s) uploaded.`;
+                    } else {
+                        document.getElementById('successAlert').textContent = 'Lesson created successfully!';
+                    }
+
+                    document.getElementById('successAlert').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = backUrl;
+                    }, 900);
+                } else {
+                    throw new Error(data.message || 'Failed to create lesson');
+                }
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to create lesson.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

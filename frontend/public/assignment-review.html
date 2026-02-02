@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Review - TauTec</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #06b6d4;
+            --primary-dark: #0891b2;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); }
+        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px; }
+        header .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        main { max-width: 1100px; margin: 24px auto; padding: 0 20px 40px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .stat { background: #f1f5f9; border-radius: 10px; padding: 12px; text-align: center; }
+        .stat .value { font-size: 22px; font-weight: 800; }
+        .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #e2e8f0; color: var(--text); }
+        .btn-danger { background: #fee2e2; color: #991b1b; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .submission { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .badge.pending { background: #fef3c7; color: #92400e; }
+        .badge.graded { background: #dcfce7; color: #166534; }
+        .meta { color: var(--muted); font-size: 13px; }
+        .grade-box { display: none; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 12px; }
+        .field { display: grid; gap: 6px; margin-bottom: 10px; }
+        input, textarea, select { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-family: inherit; }
+        textarea { min-height: 90px; resize: vertical; }
+        .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+        @media (max-width: 900px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .submission { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="row">
+            <div>
+                <div style="font-size: 18px; font-weight: 800;">Assignment Review</div>
+                <div class="meta" id="assignmentSubtitle">Loading...</div>
+            </div>
+            <div>
+                <button class="btn btn-outline" onclick="goBack()">Back</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="grid">
+            <div class="card">
+                <div class="row-between" style="margin-bottom: 12px;">
+                    <div style="font-weight: 700;">Summary</div>
+                    <div class="filters">
+                        <button class="btn btn-secondary" onclick="setFilter('all')">All</button>
+                        <button class="btn btn-secondary" onclick="setFilter('pending')">Pending</button>
+                        <button class="btn btn-secondary" onclick="setFilter('graded')">Graded</button>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat"><div class="value" id="statTotal">0</div><div class="meta">Submissions</div></div>
+                    <div class="stat"><div class="value" id="statPending">0</div><div class="meta">Pending</div></div>
+                    <div class="stat"><div class="value" id="statGraded">0</div><div class="meta">Graded</div></div>
+                    <div class="stat"><div class="value" id="statAvg">0</div><div class="meta">Avg Score</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="row-between" style="margin-bottom: 12px;">
+                    <div style="font-weight: 700;">Submissions</div>
+                    <button class="btn btn-primary" onclick="reload()">Refresh</button>
+                </div>
+                <div id="submissionsList" class="grid">
+                    <div class="empty">Loading submissions...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const assignmentId = new URLSearchParams(window.location.search).get('id');
+
+        if (!token || (user.role !== 'instructor' && user.role !== 'admin')) {
+            window.location.href = '/login.html';
+        }
+
+        let submissions = [];
+        let filter = 'all';
+
+        function goBack() {
+            window.location.href = '/instructor-dashboard.html';
+        }
+
+        function setFilter(value) {
+            filter = value;
+            renderSubmissions();
+        }
+
+        function reload() {
+            loadAssignment();
+            loadSubmissions();
+        }
+
+        async function loadAssignment() {
+            try {
+                const res = await fetch(`${API_URL}/assignments/${assignmentId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.data) {
+                    const a = data.data;
+                    document.getElementById('assignmentSubtitle').textContent =
+                        `${a.title} | Due: ${new Date(a.due_date).toLocaleString()} | Max: ${a.max_score}`;
+                    if (a.stats) {
+                        document.getElementById('statTotal').textContent = a.stats.total_submissions || 0;
+                        document.getElementById('statPending').textContent = a.stats.pending_count || 0;
+                        document.getElementById('statGraded').textContent = a.stats.graded_count || 0;
+                        document.getElementById('statAvg').textContent = a.stats.avg_score ? Number(a.stats.avg_score).toFixed(1) : 0;
+                    }
+                }
+            } catch (e) {
+                document.getElementById('assignmentSubtitle').textContent = 'Assignment not found';
+            }
+        }
+
+        async function loadSubmissions() {
+            try {
+                const res = await fetch(`${API_URL}/assignments/${assignmentId}/submissions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                submissions = data.data || [];
+                renderSubmissions();
+                updateStatsFromList();
+            } catch (e) {
+                document.getElementById('submissionsList').innerHTML =
+                    '<div class="empty">Failed to load submissions.</div>';
+            }
+        }
+
+        function updateStatsFromList() {
+            const total = submissions.length;
+            const graded = submissions.filter(s => s.score !== null && s.score !== undefined).length;
+            const pending = total - graded;
+            const avg = graded > 0 ? (submissions.reduce((sum, s) => sum + (s.score || 0), 0) / graded) : 0;
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statGraded').textContent = graded;
+            document.getElementById('statAvg').textContent = avg ? avg.toFixed(1) : 0;
+        }
+
+        function renderSubmissions() {
+            const list = document.getElementById('submissionsList');
+            let filtered = submissions;
+            if (filter === 'pending') {
+                filtered = submissions.filter(s => s.score === null || s.score === undefined);
+            } else if (filter === 'graded') {
+                filtered = submissions.filter(s => s.score !== null && s.score !== undefined);
+            }
+
+            if (!filtered.length) {
+                list.innerHTML = '<div class="empty">No submissions found.</div>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(s => {
+                const status = (s.score === null || s.score === undefined) ? 'pending' : 'graded';
+                const fileLink = s.file_path ? `<a href="/uploads/${s.file_path}" target="_blank" class="btn btn-outline">Download</a>` : '';
+                return `
+                    <div class="submission">
+                        <div>
+                            <div style="font-weight: 700;">${s.first_name} ${s.last_name}</div>
+                            <div class="meta">${s.email || ''}</div>
+                            <div class="meta">Submitted: ${s.submitted_at ? new Date(s.submitted_at).toLocaleString() : '—'}</div>
+                            <div style="margin-top: 8px;">
+                                <span class="badge ${status}">${status.toUpperCase()}</span>
+                                ${s.score !== null && s.score !== undefined ? `<span class="meta" style="margin-left: 8px;">Score: ${s.score}/${s.max_score}</span>` : ''}
+                            </div>
+                            <div class="grade-box" id="grade-${s.id}">
+                                <div class="field">
+                                    <label>Score (max ${s.max_score})</label>
+                                    <input type="number" min="0" max="${s.max_score}" step="0.1" id="score-${s.id}" value="${s.score ?? ''}">
+                                </div>
+                                <div class="field">
+                                    <label>Feedback</label>
+                                    <textarea id="feedback-${s.id}">${s.feedback ?? ''}</textarea>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn btn-primary" onclick="submitGrade(${s.id}, ${s.max_score})">Save Grade</button>
+                                    <button class="btn btn-secondary" onclick="toggleGrade(${s.id})">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+                            ${fileLink}
+                            <button class="btn btn-primary" onclick="toggleGrade(${s.id})">${status === 'graded' ? 'Edit Grade' : 'Grade'}</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleGrade(id) {
+            const box = document.getElementById(`grade-${id}`);
+            if (box) box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function submitGrade(submissionId, maxScore) {
+            const scoreEl = document.getElementById(`score-${submissionId}`);
+            const feedbackEl = document.getElementById(`feedback-${submissionId}`);
+            const score = parseFloat(scoreEl.value);
+            const feedback = feedbackEl.value || '';
+
+            if (Number.isNaN(score) || score < 0 || score > maxScore) {
+                alert(`Score must be between 0 and ${maxScore}`);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/instructor/submissions/${submissionId}/grade`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ score, feedback })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    reload();
+                } else {
+                    alert(data.message || 'Failed to save grade');
+                }
+            } catch (e) {
+                alert('Failed to save grade');
+            }
+        }
+
+        if (!assignmentId) {
+            document.getElementById('assignmentSubtitle').textContent = 'Missing assignment id';
+            document.getElementById('submissionsList').innerHTML = '<div class="empty">No assignment selected.</div>';
+        } else {
+            reload();
+        }
+    </script>
+</body>
+</html>

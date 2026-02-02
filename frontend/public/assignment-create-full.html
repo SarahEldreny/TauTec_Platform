@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Assignment (Full) - TauTec</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #06b6d4;
+            --primary-dark: #0891b2;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); }
+        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px; }
+        main { max-width: 900px; margin: 24px auto; padding: 0 20px 40px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .field { display: grid; gap: 6px; margin-bottom: 14px; }
+        label { font-weight: 700; font-size: 14px; }
+        input, select, textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: inherit; }
+        textarea { min-height: 120px; resize: vertical; }
+        .btn { border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #e2e8f0; color: var(--text); }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 12px; display: none; }
+        .alert.error { background: #fee2e2; color: #991b1b; }
+        .alert.success { background: #dcfce7; color: #166534; }
+        @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div style="font-weight:800;">Create Assignment</div>
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="card">
+            <div id="alert" class="alert"></div>
+
+            <div class="field">
+                <label for="course">Course</label>
+                <select id="course" required>
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="title">Title</label>
+                <input id="title" type="text" placeholder="Assignment title" required>
+            </div>
+
+            <div class="field">
+                <label for="description">Description</label>
+                <textarea id="description" placeholder="Instructions / requirements"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="dueDate">Due Date</label>
+                    <input id="dueDate" type="datetime-local" required>
+                </div>
+                <div class="field">
+                    <label for="maxScore">Max Score</label>
+                    <input id="maxScore" type="number" min="0" step="0.1" value="100">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" onclick="createAssignment()">Create Assignment</button>
+                <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token || (user.role !== 'instructor' && user.role !== 'admin')) {
+            window.location.href = '/login.html';
+        }
+
+        function showAlert(message, type) {
+            const el = document.getElementById('alert');
+            el.className = `alert ${type}`;
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function resetForm() {
+            document.getElementById('title').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('dueDate').value = '';
+            document.getElementById('maxScore').value = '100';
+        }
+
+        function goBack() {
+            window.location.href = '/instructor-dashboard.html';
+        }
+
+        async function loadCourses() {
+            const select = document.getElementById('course');
+            try {
+                const res = await fetch(`${API_URL}/courses/instructor/my-courses`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.success || !data.data || data.data.length === 0) {
+                    select.innerHTML = '<option value=\"\">No courses found</option>';
+                    return;
+                }
+                select.innerHTML = '<option value=\"\">Select a course</option>' + data.data.map(c =>
+                    `<option value=\"${c.id}\">${c.title} (${c.status})</option>`
+                ).join('');
+            } catch (e) {
+                select.innerHTML = '<option value=\"\">Failed to load</option>';
+            }
+        }
+
+        async function createAssignment() {
+            const courseId = parseInt(document.getElementById('course').value);
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const dueDate = document.getElementById('dueDate').value;
+            const maxScore = parseFloat(document.getElementById('maxScore').value || '100');
+
+            if (!courseId || !title || !dueDate) {
+                showAlert('Course, title, and due date are required.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/instructor/assignments`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId, title, description, dueDate, maxScore })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAlert('Assignment created successfully.', 'success');
+                    resetForm();
+                } else {
+                    showAlert(data.message || 'Failed to create assignment.', 'error');
+                }
+            } catch (e) {
+                showAlert('Failed to create assignment.', 'error');
+            }
+        }
+
+        loadCourses();
+    </script>
+</body>
+</html>

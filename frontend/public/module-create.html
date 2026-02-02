@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Module - TauTec</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        main { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        input[type="text"], textarea, input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 120px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-row button { flex: 1; }
+        .error-alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .success-alert { background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        h1 { color: #0891b2; margin-bottom: 10px; }
+        .back-link { color: #0891b2; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="#" class="back-link" id="backLink">Back to Course</a>
+        <div class="card">
+            <h1>Create Module</h1>
+            <div class="error-alert" id="errorAlert"></div>
+            <div class="success-alert" id="successAlert"></div>
+            <form id="moduleForm">
+                <div class="form-group">
+                    <label for="title">Module Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g., Getting Started">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="Optional module description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="orderIndex">Order (optional)</label>
+                    <input type="number" id="orderIndex" name="orderIndex" min="1" placeholder="Leave empty for auto">
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Module</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams(window.location.search);
+        const courseId = params.get('courseId');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        if (!courseId) {
+            document.getElementById('errorAlert').textContent = 'Course ID not provided.';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+
+        const backUrl = courseId ? `/course-edit.html?id=${courseId}` : '/instructor-dashboard.html';
+        document.getElementById('backLink').href = backUrl;
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = backUrl;
+        });
+
+        document.getElementById('moduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const orderValue = document.getElementById('orderIndex').value.trim();
+            const orderIndex = orderValue ? parseInt(orderValue, 10) : null;
+
+            try {
+                const res = await fetch(`${API_URL}/courses/${courseId}/modules`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        order_index: orderIndex
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('successAlert').textContent = 'Module created successfully!';
+                    document.getElementById('successAlert').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = backUrl;
+                    }, 900);
+                } else {
+                    throw new Error(data.message || 'Failed to create module');
+                }
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to create module.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

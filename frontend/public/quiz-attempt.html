@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Attempt - TauTec</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .question { padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 14px; background: #f9fafb; }
+        .question h4 { margin: 0 0 8px 0; }
+        .option { display: block; margin-bottom: 6px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-row button { flex: 1; }
+        .error-alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .success-alert { background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .muted { color: #64748b; font-size: 12px; }
+        .back-link { color: #0891b2; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="#" class="back-link" id="backLink">Back to Course</a>
+        <div class="card">
+            <h1 id="quizTitle">Quiz</h1>
+            <p id="quizMeta" class="muted"></p>
+
+            <div class="error-alert" id="errorAlert"></div>
+            <div class="success-alert" id="successAlert"></div>
+
+            <form id="quizForm">
+                <div id="questionsContainer"></div>
+                <div class="btn-row">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Quiz</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams(window.location.search);
+        const quizId = params.get('id') || params.get('quizId');
+        const courseId = params.get('courseId');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        const backUrl = courseId ? `/course-view.html?id=${courseId}` : '/student-dashboard.html';
+        document.getElementById('backLink').href = backUrl;
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = backUrl;
+        });
+
+        let quizData = null;
+
+        function renderQuestions(questions) {
+            const container = document.getElementById('questionsContainer');
+            if (!questions || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="question" style="text-align:center;">
+                        <strong>No questions added yet.</strong>
+                        <div class="muted">Ask your instructor to add quiz questions.</div>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = questions.map((q, idx) => {
+                const name = `q_${q.id}`;
+                if (q.question_type === 'short_answer') {
+                    return `
+                        <div class="question">
+                            <h4>Q${idx + 1}. ${q.question_text}</h4>
+                            <input type="text" name="${name}" placeholder="Your answer" />
+                            <div class="muted">Points: ${q.points || 1}</div>
+                        </div>
+                    `;
+                }
+
+                let options = q.options || [];
+                if (q.question_type === 'true_false' && options.length === 0) {
+                    options = ['True', 'False'];
+                }
+                const inputs = options.map((opt, i) => `
+                    <label class="option">
+                        <input type="radio" name="${name}" value="${opt}"> ${opt}
+                    </label>
+                `).join('');
+
+                return `
+                    <div class="question">
+                        <h4>Q${idx + 1}. ${q.question_text}</h4>
+                        ${inputs}
+                        <div class="muted">Points: ${q.points || 1}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadQuiz() {
+            try {
+                const res = await fetch(`${API_URL}/student/quizzes/${quizId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load quiz');
+                }
+                quizData = data.data;
+                document.getElementById('quizTitle').textContent = quizData.quiz.title;
+                document.getElementById('quizMeta').textContent = `Attempts: ${quizData.attempts_count} � Pass: ${quizData.quiz.passing_score} � Time: ${quizData.quiz.time_limit || 0} min`;
+                renderQuestions(quizData.questions || []);
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to load quiz.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }
+
+        document.getElementById('quizForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!quizData) return;
+
+            const answers = quizData.questions.map(q => {
+                const name = `q_${q.id}`;
+                const field = document.querySelector(`[name="${name}"]`);
+                let value = '';
+                if (!field) return { questionId: q.id, answer: '' };
+                if (field.type === 'radio') {
+                    const checked = document.querySelector(`[name="${name}"]:checked`);
+                    value = checked ? checked.value : '';
+                } else {
+                    value = field.value || '';
+                }
+                return { questionId: q.id, answer: value };
+            });
+
+            try {
+                const res = await fetch(`${API_URL}/student/quizzes/${quizId}/attempt`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ answers })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to submit quiz');
+                }
+                document.getElementById('successAlert').textContent = `Submitted! Score: ${data.data.score}/${data.data.totalPoints} � ${data.data.passed ? 'Passed' : 'Not Passed'}`;
+                document.getElementById('successAlert').style.display = 'block';
+                document.getElementById('errorAlert').style.display = 'none';
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to submit quiz.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        });
+
+        if (quizId) {
+            loadQuiz();
+        } else {
+            document.getElementById('errorAlert').textContent = 'Quiz ID not provided.';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+

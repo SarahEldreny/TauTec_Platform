@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - TauTec</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00bcd4;
+            --primary-dark: #0097a7;
+            --primary-light: #4dd0e1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0a1628;
+            --dark-card: #1e293b;
+            --dark-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gradient: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            background: var(--dark-card);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: var(--text);
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--primary);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: var(--dark-card);
+            padding: 5px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-family: 'Cairo', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            background: var(--gradient);
+            color: white;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .card-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .card-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--dark);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'Cairo', sans-serif;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-control:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Avatar */
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .avatar-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid var(--dark-card);
+        }
+
+        .avatar-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .avatar-info p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* Toggle Switch */
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toggle-item:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toggle-info p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .toggle {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--dark-hover);
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            content: '';
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: var(--primary);
+        }
+
+        .toggle input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* Badge */
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-admin {
+            background: rgba(236, 72, 153, 0.2);
+            color: #f472b6;
+        }
+
+        .badge-instructor {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+        }
+
+        .badge-student {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .avatar-section {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚙️ Settings</h1>
+            <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('profile')">👤 Profile</button>
+            <button class="tab" onclick="showTab('security')">🔐 Security</button>
+            <button class="tab" onclick="showTab('notifications')">🔔 Notifications</button>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert" id="alert"></div>
+
+        <!-- Profile Section -->
+        <div class="section active" id="profile">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon">👤</div>
+                    <div>
+                        <h2>Profile Information</h2>
+                        <p>Update your personal information</p>
+                    </div>
+                </div>
+
+                <div class="avatar-section">
+                    <div class="avatar" id="avatarPreview">
+                        <span id="avatarInitial">?</span>
+                        <div class="avatar-upload" title="Change avatar">📷</div>
+                    </div>
+                    <div class="avatar-info">
+                        <h3 id="displayName">Loading...</h3>
+                        <p id="displayEmail">loading@example.com</p>
+                        <span class="badge" id="roleBadge">User</span>
+                    </div>
+                </div>
+
+                <form id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" class="form-control" id="firstName" placeholder="Enter first name">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" class="form-control" id="lastName" placeholder="Enter last name">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-control" id="email" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" placeholder="Enter phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea class="form-control" id="bio" rows="3"
+                            placeholder="Tell us about yourself..."></textarea>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="section" id="security">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon">🔐</div>
+                    <div>
+                        <h2>Change Password</h2>
+                        <p>Update your password regularly to keep your account secure</p>
+                    </div>
+                </div>
+
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword"
+                            placeholder="Enter current password">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" class="form-control" id="newPassword"
+                                placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword"
+                                placeholder="Confirm new password">
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">🔒 Update Password</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon">⚠️</div>
+                    <div>
+                        <h2>Account Actions</h2>
+                        <p>Manage your account status</p>
+                    </div>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <h4>Two-Factor Authentication</h4>
+                        <p>Add an extra layer of security to your account</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="twoFactor">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-danger" onclick="logoutAllDevices()">🚪 Logout All
+                        Devices</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="section" id="notifications">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon">🔔</div>
+                    <div>
+                        <h2>Notification Preferences</h2>
+                        <p>Choose what notifications you want to receive</p>
+                    </div>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <h4>Email Notifications</h4>
+                        <p>Receive email updates about your courses and messages</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="emailNotif" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <h4>Push Notifications</h4>
+                        <p>Get browser notifications for new messages</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="pushNotif" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <h4>Course Updates</h4>
+                        <p>Notifications about course content and announcements</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="courseNotif" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <h4>Assignment Reminders</h4>
+                        <p>Get reminders about upcoming assignment deadlines</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="assignmentNotif" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-info">
+                        <h4>Marketing Emails</h4>
+                        <p>Receive updates about new courses and promotions</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="marketingNotif">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="saveNotificationPrefs()">💾 Save
+                        Preferences</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token) window.location.href = '/login.html';
+
+        // Go back
+        function goBack() {
+            window.location.href = `/${user.role}-dashboard.html`;
+        }
+
+        // Tab switching
+        function showTab(tabId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert show alert-${type}`;
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        // Load profile
+        async function loadProfile() {
+            try {
+                const res = await fetch(`${API_URL}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.success && data.data) {
+                    const p = data.data;
+                    document.getElementById('firstName').value = p.first_name || '';
+                    document.getElementById('lastName').value = p.last_name || '';
+                    document.getElementById('email').value = p.email || '';
+                    document.getElementById('phone').value = p.phone || '';
+                    document.getElementById('bio').value = p.bio || '';
+
+                    document.getElementById('displayName').textContent = `${p.first_name} ${p.last_name}`;
+                    document.getElementById('displayEmail').textContent = p.email;
+                    document.getElementById('avatarInitial').textContent = p.first_name ? p.first_name.charAt(0) : '?';
+
+                    const badge = document.getElementById('roleBadge');
+                    badge.textContent = p.role;
+                    badge.className = `badge badge-${p.role}`;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Save profile
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                phone: document.getElementById('phone').value,
+                bio: document.getElementById('bio').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    showAlert('Profile updated successfully! ✅');
+                    // Update local storage
+                    const updatedUser = { ...user, first_name: data.first_name, last_name: data.last_name };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    loadProfile();
+                } else {
+                    showAlert(result.message || 'Failed to update profile', 'error');
+                }
+            } catch (error) {
+                showAlert('Error updating profile', 'error');
+            }
+        });
+
+        // Change password
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showAlert('Passwords do not match', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showAlert('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/change-password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    showAlert('Password changed successfully! ✅');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    showAlert(result.message || 'Failed to change password', 'error');
+                }
+            } catch (error) {
+                showAlert('Error changing password', 'error');
+            }
+        });
+
+        // Logout all devices
+        async function logoutAllDevices() {
+            if (!confirm('This will log you out from all devices. Continue?')) return;
+
+            try {
+                const res = await fetch(`${API_URL}/auth/logout-all`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const result = await res.json();
+                showAlert(result.message || 'Logged out from all devices');
+
+                // Clear local storage and redirect
+                setTimeout(() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login.html';
+                }, 1500);
+            } catch (error) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Load notification preferences
+        async function loadNotificationPrefs() {
+            try {
+                const res = await fetch(`${API_URL}/notifications/preferences`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.success && data.data) {
+                    const prefs = data.data;
+                    document.getElementById('emailNotif').checked = prefs.email_enabled !== false;
+                    document.getElementById('pushNotif').checked = prefs.push_enabled !== false;
+                    document.getElementById('courseNotif').checked = prefs.course_updates !== false;
+                    document.getElementById('assignmentNotif').checked = prefs.assignment_reminders !== false;
+                    document.getElementById('marketingNotif').checked = prefs.marketing_emails === true;
+                }
+            } catch (error) {
+                console.error('Error loading preferences:', error);
+            }
+        }
+
+        // Save notification preferences
+        async function saveNotificationPrefs() {
+            const prefs = {
+                email_enabled: document.getElementById('emailNotif').checked,
+                push_enabled: document.getElementById('pushNotif').checked,
+                course_updates: document.getElementById('courseNotif').checked,
+                assignment_reminders: document.getElementById('assignmentNotif').checked,
+                marketing_emails: document.getElementById('marketingNotif').checked
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/notifications/preferences`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(prefs)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    showAlert('Notification preferences saved! ✅');
+                } else {
+                    showAlert(result.message || 'Failed to save preferences', 'error');
+                }
+            } catch (error) {
+                showAlert('Error saving preferences', 'error');
+            }
+        }
+
+        // Initialize
+        loadProfile();
+        loadNotificationPrefs();
+    </script>
+</body>
+
+</html>

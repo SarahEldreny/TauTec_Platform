@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results - TauTec</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        main { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .error-alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        h1 { color: #0891b2; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 14px; }
+        th { background: #f8fafc; font-weight: 600; }
+        .back-link { color: #0891b2; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .muted { color: #64748b; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="#" class="back-link" id="backLink">Back to Course</a>
+        <div class="card">
+            <h1>Quiz Results</h1>
+            <div class="error-alert" id="errorAlert"></div>
+            <div id="resultsContainer">
+                <p class="muted">Loading results...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams(window.location.search);
+        const quizId = params.get('quizId');
+        const courseId = params.get('courseId');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        const backUrl = courseId ? `/course-edit.html?id=${courseId}` : '/instructor-dashboard.html';
+        document.getElementById('backLink').href = backUrl;
+
+        async function loadResults() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/quizzes/${quizId}/results`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to load results');
+                }
+
+                if (!data.data || data.data.length === 0) {
+                    document.getElementById('resultsContainer').innerHTML = '<p class="muted">No attempts yet.</p>';
+                    return;
+                }
+
+                document.getElementById('resultsContainer').innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Email</th>
+                                <th>Score</th>
+                                <th>Total</th>
+                                <th>Passed</th>
+                                <th>Completed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.data.map(row => `
+                                <tr>
+                                    <td>${row.first_name} ${row.last_name}</td>
+                                    <td>${row.email}</td>
+                                    <td>${row.score ?? '-'}</td>
+                                    <td>${row.total_points ?? '-'}</td>
+                                    <td>${row.passed ? 'Yes' : 'No'}</td>
+                                    <td>${row.completed_at ? new Date(row.completed_at).toLocaleString() : '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to load results.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }
+
+        if (quizId) {
+            loadResults();
+        } else {
+            document.getElementById('errorAlert').textContent = 'Quiz ID not provided.';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

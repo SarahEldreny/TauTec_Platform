@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Publish All Courses</title>
+</head>
+<body>
+    <h1>Publishing all draft courses...</h1>
+    <button onclick="publishAll()">Publish All Draft Courses</button>
+    <p id="result"></p>
+    
+    <script>
+        async function publishAll() {
+            try {
+                const res = await fetch('http://localhost:5000/api/courses/debug/publish-all-drafts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                document.getElementById('result').innerHTML = '<h2>' + (data.success ? '✓ Success!' : '✕ Error') + '</h2><p>' + data.message + '</p>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<h2>✕ Error</h2><p>' + error.message + '</p>';
+            }
+        }
+        
+        // Auto-run when page loads
+        publishAll();
+    </script>
+</body>
+</html>

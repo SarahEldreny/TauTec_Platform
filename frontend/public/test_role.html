@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Role Selection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 50px;
+        }
+
+        .role-box {
+            display: inline-block;
+            padding: 30px 50px;
+            margin: 10px;
+            background: #16213e;
+            border: 3px solid #444;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .role-box:hover {
+            border-color: #6366f1;
+            background: #1f3460;
+        }
+
+        .role-box.selected {
+            border-color: #10b981;
+            background: #0f4c3a;
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #222;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Role Selection Test Page</h1>
+    <p>If this page works, click a role below and it should highlight in GREEN.</p>
+    <hr>
+
+    <div class="role-box" onclick="selectRole('student', this)">🎓 Student</div>
+    <div class="role-box" onclick="selectRole('instructor', this)">👨‍🏫 Instructor</div>
+    <div class="role-box" onclick="selectRole('client', this)">💼 Client</div>
+    <div class="role-box" onclick="selectRole('admin', this)">⚙️ Admin</div>
+
+    <div id="result">Selected Role: <strong>None</strong></div>
+
+    <script>
+        function selectRole(role, element) {
+            // Clear all selections
+            document.querySelectorAll('.role-box').forEach(box => box.classList.remove('selected'));
+
+            // Select this one
+            element.classList.add('selected');
+
+            // Show result
+            document.getElementById('result').innerHTML = 'Selected Role: <strong style="color: #10b981;">' + role.toUpperCase() + '</strong> ✅';
+
+            // Also log to console
+            console.log('ROLE SELECTED:', role);
+            alert('You selected: ' + role);
+        }
+    </script>
+</body>
+
+</html>

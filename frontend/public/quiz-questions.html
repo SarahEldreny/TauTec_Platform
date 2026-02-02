@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Questions - TauTec</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 100px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-row button { flex: 1; }
+        .error-alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .success-alert { background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        h1 { color: #0891b2; margin-bottom: 10px; }
+        .back-link { color: #0891b2; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .back-link:hover { text-decoration: underline; }
+        .options { display: grid; gap: 10px; }
+        .question-list { margin-top: 20px; display: grid; gap: 10px; }
+        .question-card { padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
+        .muted { color: #64748b; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="#" class="back-link" id="backLink">Back to Course</a>
+        <div class="card">
+            <h1>Add Quiz Questions</h1>
+            <div class="error-alert" id="errorAlert"></div>
+            <div class="success-alert" id="successAlert"></div>
+
+            <form id="questionForm">
+                <div class="form-group">
+                    <label for="questionText">Question Text *</label>
+                    <textarea id="questionText" required placeholder="Type your question..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="questionType">Question Type *</label>
+                        <select id="questionType" required>
+                            <option value="multiple_choice">Multiple Choice</option>
+                            <option value="true_false">True/False</option>
+                            <option value="short_answer">Short Answer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="points">Points</label>
+                        <input type="number" id="points" min="0" step="0.5" placeholder="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="orderIndex">Order (optional)</label>
+                    <input type="number" id="orderIndex" min="1" placeholder="Leave empty for auto">
+                </div>
+
+                <div class="form-group" id="optionsGroup">
+                    <label>Options</label>
+                    <div class="options" id="optionsContainer"></div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="addOptionBtn">+ Add Option</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="correctAnswer">Correct Answer *</label>
+                    <input type="text" id="correctAnswer" required placeholder="Correct answer">
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn btn-secondary" id="resetBtn">Reset</button>
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                </div>
+            </form>
+
+            <div class="question-list" id="questionList"></div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams(window.location.search);
+        const courseId = params.get('courseId');
+        const quizId = params.get('quizId');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        if (!quizId) {
+            document.getElementById('errorAlert').textContent = 'Quiz ID not provided.';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+
+        const backUrl = courseId ? `/course-edit.html?id=${courseId}` : '/instructor-dashboard.html';
+        document.getElementById('backLink').href = backUrl;
+
+        const optionsContainer = document.getElementById('optionsContainer');
+        const questionType = document.getElementById('questionType');
+
+        function addOption(value = '') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Option text';
+            input.value = value;
+            optionsContainer.appendChild(input);
+        }
+
+        function resetOptions() {
+            optionsContainer.innerHTML = '';
+        }
+
+        function setupOptionsForType() {
+            const type = questionType.value;
+            const optionsGroup = document.getElementById('optionsGroup');
+            resetOptions();
+
+            if (type === 'multiple_choice') {
+                optionsGroup.style.display = 'block';
+                addOption();
+                addOption();
+                addOption();
+                addOption();
+                document.getElementById('correctAnswer').value = '';
+            } else if (type === 'true_false') {
+                optionsGroup.style.display = 'block';
+                addOption('True');
+                addOption('False');
+                document.getElementById('correctAnswer').value = 'True';
+            } else {
+                optionsGroup.style.display = 'none';
+            }
+        }
+
+        document.getElementById('addOptionBtn').addEventListener('click', () => addOption());
+        questionType.addEventListener('change', setupOptionsForType);
+        setupOptionsForType();
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('questionForm').reset();
+            setupOptionsForType();
+        });
+
+        function collectOptions() {
+            const type = questionType.value;
+            if (type === 'short_answer') return [];
+            const inputs = optionsContainer.querySelectorAll('input');
+            return Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+        }
+
+        function appendQuestionCard(data) {
+            const list = document.getElementById('questionList');
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.innerHTML = `
+                <div><strong>${data.questionText}</strong></div>
+                <div class="muted">Type: ${data.questionType} • Points: ${data.points || 1} • Order: ${data.orderIndex || 'auto'}</div>
+            `;
+            list.prepend(card);
+        }
+
+        document.getElementById('questionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                questionText: document.getElementById('questionText').value.trim(),
+                questionType: questionType.value,
+                options: collectOptions(),
+                correctAnswer: document.getElementById('correctAnswer').value.trim(),
+                points: document.getElementById('points').value ? parseFloat(document.getElementById('points').value) : 1,
+                orderIndex: document.getElementById('orderIndex').value ? parseInt(document.getElementById('orderIndex').value, 10) : null
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/instructor/quizzes/${quizId}/questions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('successAlert').textContent = 'Question added successfully!';
+                    document.getElementById('successAlert').style.display = 'block';
+                    document.getElementById('errorAlert').style.display = 'none';
+                    appendQuestionCard(payload);
+                    document.getElementById('questionForm').reset();
+                    setupOptionsForType();
+                } else {
+                    throw new Error(data.message || 'Failed to add question');
+                }
+            } catch (error) {
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to add question.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

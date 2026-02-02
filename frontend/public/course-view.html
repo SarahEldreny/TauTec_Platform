@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course View - TauTec</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #06b6d4;
+            --primary-dark: #0891b2;
+            --primary-light: #ecfeff;
+            --gradient-primary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .header-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .header-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .header-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: var(--text-muted);
+            margin: 0 8px;
+        }
+
+        .course-hero {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-md);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .course-hero-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+        }
+
+        .course-hero-content h2 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .course-hero-content p {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 24px;
+            margin: 24px 0;
+            padding: 16px 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-item strong {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .meta-item span {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .content-section h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .lessons-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .lesson-item {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+                .lesson-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+.lesson-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+
+        .lesson-info h4 {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .lesson-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #fca5a5;
+        }
+
+        @media (max-width: 768px) {
+            .course-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🎓 TauTec Learning</h1>
+        <div class="header-links">
+            <a href="/student-dashboard.html">Dashboard</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="/student-dashboard.html">Dashboard</a>
+            <span>/</span>
+            <span id="breadcrumbCourse">Course</span>
+        </div>
+
+        <!-- Course Hero -->
+        <div id="courseContent" class="loading">
+            <div class="spinner"></div>
+            <p>Loading course...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        // Check authentication
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        // Get course ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('id');
+
+        if (!courseId) {
+            document.getElementById('courseContent').innerHTML = 
+                '<div class="error">❌ No course selected. <a href="/student-dashboard.html">Go back to dashboard</a></div>';
+        } else {
+            loadCourse();
+        }
+
+        async function loadCourse() {
+            try {
+                const res = await fetch(`${API_URL}/courses/${courseId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    renderCourse(data.data);
+                } else {
+                    showError(data.message || 'Failed to load course');
+                }
+            } catch (error) {
+                console.error('Error loading course:', error);
+                showError(error.message);
+            }
+        }
+
+        function renderCourse(course) {
+            const courseHtml = `
+                <div class="course-hero">
+                    <div class="course-hero-image">
+                        ${course.thumbnail ? `<img src="${course.thumbnail}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📖'}
+                    </div>
+                    <div class="course-hero-content">
+                        <h2>${course.title}</h2>
+                        <p>${course.description}</p>
+                        
+                        <div class="course-meta">
+                            <div class="meta-item">
+                                <strong>👨‍🏫</strong>
+                                <span>${course.instructor_first_name} ${course.instructor_last_name}</span>
+                            </div>
+                            <div class="meta-item">
+                                <strong>📚</strong>
+                                <span>${course.duration || 0} hours</span>
+                            </div>
+                            <div class="meta-item">
+                                <strong>🎯</strong>
+                                <span>${course.difficulty}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-top: 24px;">
+                            <button class="btn btn-primary" onclick="startLearning(${course.id})">
+                                ▶️ Start Learning
+                            </button>
+                            <a href="/student-dashboard.html" class="btn btn-secondary">
+                                ← Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h3>📖 Course Content</h3>
+                    <div id="progressSummary" style="margin-bottom: 16px; padding: 12px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                            <div>
+                                <strong>Progress</strong>
+                                <div style="font-size: 12px; color: var(--text-muted);" id="progressText">Loading...</div>
+                            </div>
+                            <div style="font-weight:700;" id="progressPercent">0%</div>
+                        </div>
+                        <div style="height: 8px; background: #e2e8f0; border-radius: 999px; margin-top: 10px; overflow: hidden;">
+                            <div id="progressBar" style="height: 8px; width: 0%; background: var(--primary);"></div>
+                        </div>
+                    </div>
+                    <div class="lessons-grid" id="lessonsList">
+                        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            <p>Loading lessons...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-section">
+                    <h3>📝 Assignments</h3>
+                    <div id="assignmentsList">
+                        <div style="text-align: center; padding: 30px; color: var(--text-muted);">Loading assignments...</div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h3>Quizzes</h3>
+                    <div id="quizzesList">
+                        <div style="text-align: center; padding: 30px; color: var(--text-muted);">Loading quizzes...</div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h3>📝 Course Details</h3>
+                    <p><strong>Category:</strong> ${course.category}</p>
+                    <p><strong>Status:</strong> ${course.status}</p>
+                    <p><strong>Price:</strong> ${parseFloat(course.price) === 0 ? 'FREE' : '$ ' + course.price}</p>
+                </div>
+            `;
+
+            document.getElementById('courseContent').innerHTML = courseHtml;
+            document.getElementById('breadcrumbCourse').textContent = course.title;
+
+            // Load course modules/lessons
+            loadCourseLessons(course.id);
+            loadAssignmentsForCourse(course.id);
+            loadQuizzesForCourse(course.id);
+        }
+
+        async function loadCourseLessons(courseId) {
+            try {
+                const res = await fetch(`${API_URL}/student/courses/${courseId}/progress`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                const lessonsList = document.getElementById("lessonsList");
+                const progressText = document.getElementById("progressText");
+                const progressPercent = document.getElementById("progressPercent");
+                const progressBar = document.getElementById("progressBar");
+
+                if (!data.success) {
+                    lessonsList.innerHTML = `
+                        <div style="text-align:center; padding: 20px; color: var(--text-muted);">
+                            <p>You must enroll in this course to view lessons.</p>
+                            <p style="margin-top:8px;">Go back to your dashboard and enroll first.</p>
+                        </div>
+                    `;
+                    progressText.textContent = "Enrollment required";
+                    progressPercent.textContent = "0%";
+                    progressBar.style.width = "0%";
+                    return;
+                }
+
+                const progress = data.data;
+                const orderedLessons = progress.lessons || [];
+                let firstIncompleteIndex = orderedLessons.findIndex(l => !l.is_completed);
+                if (firstIncompleteIndex === -1) firstIncompleteIndex = orderedLessons.length;
+                const canCompleteIds = new Set();
+                orderedLessons.forEach((lesson, idx) => {
+                    if (lesson.is_completed || idx === firstIncompleteIndex) {
+                        canCompleteIds.add(lesson.id);
+                    }
+                });
+                progressText.textContent = `${progress.completedLessons} / ${progress.totalLessons} lessons completed`;
+                progressPercent.textContent = `${progress.progressPercentage}%`;
+                progressBar.style.width = `${progress.progressPercentage}%`;
+
+                const grouped = {};
+                progress.lessons.forEach(lesson => {
+                    if (!grouped[lesson.module_title]) grouped[lesson.module_title] = [];
+                    grouped[lesson.module_title].push(lesson);
+                });
+
+                lessonsList.innerHTML = Object.keys(grouped).map(moduleTitle => `
+                    <div style="background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px;">
+                        <h4 style="margin-bottom: 10px;">${moduleTitle}</h4>
+                        ${grouped[moduleTitle].map(lesson => `
+                            <div class="lesson-item">
+                                <div class="lesson-info">
+                                    <h4>${lesson.title}</h4>
+                                    <p>Type: ${lesson.lesson_type || "lesson"} � Duration: ${lesson.duration || 0} min</p>
+                                </div>
+                                <div class="lesson-actions">
+                                    ${(lesson.is_completed || canCompleteIds.has(lesson.id))
+                                        ? `<button class="btn btn-secondary" onclick="openLessonContent(${lesson.id})">View Content</button>`
+                                        : `<button class="btn btn-secondary" disabled>View Content</button>`}
+                                    ${lesson.is_completed
+                                        ? `<button class="btn btn-secondary" disabled>Completed</button>`
+                                        : (canCompleteIds.has(lesson.id)
+                                            ? `<button class="btn btn-primary" onclick="markLessonComplete(${lesson.id})">Mark Complete</button>`
+                                            : `<button class="btn btn-secondary" disabled>Locked</button>`)}
+                                </div>
+                            </div>
+                        `).join("")}
+                    </div>
+                `).join("");
+            } catch (error) {
+                console.error("Error loading lessons:", error);
+                const lessonsList = document.getElementById("lessonsList");
+                if (lessonsList) {
+                    lessonsList.innerHTML = `<div style="text-align:center; padding:20px; color: var(--text-muted);">Failed to load lessons.</div>`;
+                }
+            }
+        }
+        async function loadAssignmentsForCourse(courseId) {
+            try {
+                const res = await fetch(`${API_URL}/assignments/course/${courseId}/student/grades`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById("assignmentsList");
+
+                if (!container) return;
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color: var(--text-muted);">No assignments for this course.</div>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(a => {
+                    const submission = a.submission || null;
+                    const status = submission && submission.score !== null ? 'Graded' : (submission ? 'Submitted' : 'Pending');
+                    const statusColor = status === 'Graded' ? '#16a34a' : (status === 'Submitted' ? '#0ea5e9' : '#f59e0b');
+                    const scoreText = submission && submission.score !== null ? `Score: ${submission.score}/${a.max_score}` : '';
+                    const button = submission
+                        ? '<button class="btn btn-secondary" disabled>Submitted</button>'
+                        : `<button class="btn btn-primary" onclick="submitAssignmentFromCourse(${a.id})">Submit</button>`;
+
+                    return `
+                    <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; background: var(--bg-body);">
+                        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                            <div>
+                                <strong>${a.title}</strong>
+                                <div style="font-size:12px; color: var(--text-muted);">Due: ${new Date(a.due_date).toLocaleString()} � Max: ${a.max_score}</div>
+                                <div style="font-size:12px; margin-top:4px; color: ${statusColor}; font-weight: 700;">${status}</div>
+                                ${scoreText ? `<div style=\"font-size:12px; color: var(--text-muted);\">${scoreText}</div>` : ''}
+                            </div>
+                            ${button}
+                        </div>
+                        <div style="margin-top:8px; color: var(--text-muted); font-size: 13px;">${a.description || ''}</div>
+                    </div>
+                `;
+                }).join('');
+            } catch (error) {
+                const container = document.getElementById("assignmentsList");
+                if (container) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color: var(--text-muted);">Failed to load assignments.</div>';
+                }
+            }
+        }
+
+        async function loadQuizzesForCourse(courseId) {
+            const container = document.getElementById("quizzesList");
+            if (!container) return;
+            try {
+                const res = await fetch(`${API_URL}/student/quizzes?courseId=${courseId}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color: var(--text-muted);">No quizzes for this course.</div>';
+                    return;
+                }
+                container.innerHTML = data.data.map(q => {
+                    const attempts = q.attempts_count || 0;
+                    const maxAttempts = q.max_attempts === null ? 'Unlimited' : q.max_attempts;
+                    return `
+                        <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 10px; background: var(--bg-body);">
+                            <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                                <div>
+                                    <strong>${q.title}</strong>
+                                    <div style="font-size:12px; color: var(--text-muted);">Time: ${q.time_limit || 0} min � Pass: ${q.passing_score || 0}</div>
+                                    <div style="font-size:12px; color: var(--text-muted); margin-top:4px;">Attempts: ${attempts} / ${maxAttempts}</div>
+                                </div>
+                                <button class="btn btn-primary" onclick="openQuizAttempt(${q.id}, ${courseId})">Start Quiz</button>
+                            </div>
+                            <div style="margin-top:8px; color: var(--text-muted); font-size: 13px;">${q.description || ''}</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading quizzes:', error);
+                container.innerHTML = '<div style="text-align:center; padding:20px; color: var(--text-muted);">Failed to load quizzes.</div>';
+            }
+        }
+
+        function openQuizAttempt(quizId, courseId) {
+            window.location.href = `/quiz-attempt.html?id=${quizId}&courseId=${courseId}`;
+        }
+        function submitAssignmentFromCourse(assignmentId) {
+            window.location.href = `/assignment-submit.html?id=${assignmentId}`;
+        }
+
+        function openLessonContent(lessonId) {
+            window.location.href = `/lesson-view.html?lessonId=${lessonId}&courseId=${courseId}`;
+        }
+
+        function markLessonComplete(lessonId) {
+            fetch(`${API_URL}/student/lessons/${lessonId}/complete`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ timeSpent: 0 })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    loadCourseLessons(courseId);
+                } else {
+                    alert(data.message || "Failed to mark complete");
+                }
+            }).catch(() => {
+                alert("Failed to mark complete");
+            });
+        }
+
+        function startLearning(courseId) {
+            loadCourseLessons(courseId);
+        }
+        function showError(message) {
+            document.getElementById('courseContent').innerHTML = 
+                `<div class="error">❌ ${message}\n\n<a href="/student-dashboard.html">← Go back to dashboard</a></div>`;
+        }
+
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

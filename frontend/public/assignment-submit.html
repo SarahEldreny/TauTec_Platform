@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Assignment - TauTec</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --primary: #06b6d4;
+            --danger: #ef4444;
+            --success: #16a34a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); }
+        header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px; }
+        main { max-width: 900px; margin: 24px auto; padding: 0 20px 40px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .field { display: grid; gap: 6px; margin-bottom: 14px; }
+        label { font-weight: 700; font-size: 14px; }
+        input, textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: inherit; }
+        textarea { min-height: 140px; resize: vertical; }
+        .btn { border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #e2e8f0; color: var(--text); }
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 12px; display: none; }
+        .alert.error { background: #fee2e2; color: #991b1b; }
+        .alert.success { background: #dcfce7; color: #166534; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div style="font-weight:800;">Submit Assignment</div>
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="card">
+            <div id="alert" class="alert"></div>
+
+            <div class="field">
+                <label for="assignmentId">Assignment ID</label>
+                <input id="assignmentId" type="number" placeholder="Enter assignment id">
+            </div>
+
+            <div class="field">
+                <label for="notes">Notes (optional)</label>
+                <textarea id="notes" placeholder="Write your submission notes"></textarea>
+            </div>
+
+            <div class="field">
+                <label for="link">Link (optional)</label>
+                <input id="link" type="url" placeholder="https://...">
+            </div>
+
+            <div class="field">
+                <label for="file">File (optional)</label>
+                <input id="file" type="file">
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" onclick="submitAssignment()">Submit</button>
+                <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const assignmentIdParam = urlParams.get('id');
+        if (assignmentIdParam) {
+            document.getElementById('assignmentId').value = assignmentIdParam;
+        }
+
+        function showAlert(message, type) {
+            const el = document.getElementById('alert');
+            el.className = `alert ${type}`;
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function resetForm() {
+            document.getElementById('notes').value = '';
+            document.getElementById('link').value = '';
+            document.getElementById('file').value = '';
+        }
+
+        function goBack() {
+            window.location.href = '/student-dashboard.html';
+        }
+
+        async function submitAssignment() {
+            const assignmentId = parseInt(document.getElementById('assignmentId').value);
+            const notes = document.getElementById('notes').value.trim();
+            const link = document.getElementById('link').value.trim();
+            const file = document.getElementById('file').files[0] || null;
+
+            if (!assignmentId) {
+                showAlert('Assignment ID is required.', 'error');
+                return;
+            }
+
+            if (!notes && !link && !file) {
+                showAlert('Please provide notes, a link, or a file.', 'error');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                if (notes) formData.append('submission_text', notes);
+                if (link) formData.append('link', link);
+                if (file) formData.append('file', file);
+
+                const res = await fetch(`${API_URL}/student/assignments/${assignmentId}/submit`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showAlert('Assignment submitted successfully.', 'success');
+                    resetForm();
+                } else {
+                    showAlert(data.message || 'Failed to submit assignment.', 'error');
+                }
+            } catch (e) {
+                showAlert('Failed to submit assignment.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

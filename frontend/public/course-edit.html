@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Course - TauTec</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .course-form { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
+        input[type="text"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 120px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        .btn-group button { flex: 1; }
+        .error-alert { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .success-alert { background: #dcfce7; color: #16a34a; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .status-badge.draft { background: #fef3c7; color: #92400e; }
+        .status-badge.published { background: #dcfce7; color: #166534; }
+        h1 { color: #0891b2; margin-bottom: 10px; }
+        .back-link { color: #0891b2; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="/instructor-dashboard.html" class="back-link">← Back to Dashboard</a>
+        
+        <div class="course-form">
+            <h1>Edit Course</h1>
+            <span class="status-badge draft" id="courseStatus"></span>
+            
+            <div class="error-alert" id="errorAlert"></div>
+            <div class="success-alert" id="successAlert"></div>
+
+            <form id="courseForm">
+                <div class="form-group">
+                    <label for="title">Course Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g., Introduction to Web Development">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" required placeholder="Provide a comprehensive description of your course content..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category *</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="Mobile Development">Mobile Development</option>
+                            <option value="Data Science">Data Science</option>
+                            <option value="AI/ML">AI/ML</option>
+                            <option value="Design">Design</option>
+                            <option value="Business">Business</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="difficulty">Difficulty Level *</label>
+                        <select id="difficulty" name="difficulty" required>
+                            <option value="">Select Level</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duration">Duration (weeks) *</label>
+                        <input type="number" id="duration" name="duration" required min="1" placeholder="e.g., 4">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price ($) *</label>
+                        <input type="number" id="price" name="price" required min="0" step="0.01" placeholder="e.g., 99.99">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxStudents">Maximum Students</label>
+                    <input type="number" id="maxStudents" name="maxStudents" min="1" placeholder="Leave empty for unlimited">
+                </div>
+
+                <div class="form-group">
+                    <label for="thumbnail">Thumbnail Image URL</label>
+                    <input type="text" id="thumbnail" name="thumbnail" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='/instructor-dashboard.html'">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+
+            <!-- Modules & Lessons Section -->
+            <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                <h2 style="color: #0891b2; margin-bottom: 20px;">📚 Modules & Lessons</h2>
+                <div id="modulesList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <p style="text-align: center; color: var(--text-muted); padding: 20px;">No modules yet.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openCreateModulePage()">+ Add Module</button>
+            </div>
+
+            <!-- Assignments Section -->
+            <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                <h2 style="color: #0891b2; margin-bottom: 20px;">📝 Assignments</h2>
+                <div id="assignmentsList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <p style="text-align: center; color: var(--text-muted); padding: 20px;">No assignments yet.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openCreateAssignmentPage()">+ Create Assignment</button>
+            </div>
+
+                                    <!-- Quizzes Section -->
+            <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                <h2 style="color: #0891b2; margin-bottom: 20px;">Quizzes</h2>
+                <div id="quizzesList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <p style="text-align: center; color: var(--text-muted); padding: 20px;">No quizzes yet.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openCreateQuizPage()">+ Create Quiz</button>
+            </div>
+<!-- Sessions Section -->
+            <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                <h2 style="color: #0891b2; margin-bottom: 20px;">📅 Schedule Sessions</h2>
+                <div id="sessionsList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <p style="text-align: center; color: var(--text-muted); padding: 20px;">No sessions scheduled yet.</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openScheduleSessionPage()">+ Schedule Session</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const courseId = new URLSearchParams(window.location.search).get('id');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        if (!courseId) {
+            document.getElementById('errorAlert').textContent = 'Course ID not provided.';
+            document.getElementById('errorAlert').style.display = 'block';
+        }
+
+        // Load course data
+        async function loadCourse() {
+            try {
+                const res = await fetch(`${API_URL}/courses/${courseId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (!data.success || !data.data) {
+                    throw new Error('Course not found');
+                }
+
+                const course = data.data;
+                document.getElementById('title').value = course.title || '';
+                document.getElementById('description').value = course.description || '';
+                document.getElementById('category').value = course.category || '';
+                document.getElementById('difficulty').value = course.difficulty || 'beginner';
+                document.getElementById('duration').value = course.duration || '';
+                document.getElementById('price').value = course.price || '0';
+                document.getElementById('maxStudents').value = course.max_students || '';
+                document.getElementById('thumbnail').value = course.thumbnail || '';
+                document.getElementById('courseStatus').textContent = course.status ? course.status.toUpperCase() : 'DRAFT';
+                document.getElementById('courseStatus').className = `status-badge ${course.status || 'draft'}`;
+            } catch (error) {
+                console.error('Error loading course:', error);
+                document.getElementById('errorAlert').textContent = 'Failed to load course data.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('courseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                difficulty: document.getElementById('difficulty').value,
+                duration_weeks: parseInt(document.getElementById('duration').value),
+                price: parseFloat(document.getElementById('price').value),
+                max_students: document.getElementById('maxStudents').value ? parseInt(document.getElementById('maxStudents').value) : null,
+                thumbnail_url: document.getElementById('thumbnail').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/courses/${courseId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('successAlert').textContent = 'Course updated successfully!';
+                    document.getElementById('successAlert').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/instructor-dashboard.html';
+                    }, 2000);
+                } else {
+                    throw new Error(data.message || 'Failed to update course');
+                }
+            } catch (error) {
+                console.error('Error updating course:', error);
+                document.getElementById('errorAlert').textContent = error.message || 'Failed to update course. Please try again.';
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        });
+
+        // Load course on page load
+        loadCourse();
+
+        // Assignment functions
+        function openCreateAssignmentPage() {
+            window.location.href = `/assignment-create-full.html?courseId=${courseId}`;
+        }
+
+        // Module & Lesson functions
+        function openCreateModulePage() {
+            window.location.href = `/module-create.html?courseId=${courseId}`;
+        }
+
+        async function createModule(title, description) {
+            try {
+                const res = await fetch(`${API_URL}/courses/${courseId}/modules`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        order_index: (window._modulesCache?.length || 0) + 1
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    loadModules();
+                } else {
+                    throw new Error(data.message || 'Failed to add module');
+                }
+            } catch (error) {
+                console.error('Error creating module:', error);
+                alert(error.message || 'Failed to add module');
+            }
+        }
+
+        function openCreateLessonPage(moduleId) {
+            window.location.href = `/lesson-create.html?courseId=${courseId}&moduleId=${moduleId}`;
+        }
+
+        async function createLesson(moduleId, lessonData) {
+            try {
+                const res = await fetch(`${API_URL}/courses/modules/${moduleId}/lessons`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(lessonData)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    loadModules();
+                } else {
+                    throw new Error(data.message || 'Failed to add lesson');
+                }
+            } catch (error) {
+                console.error('Error creating lesson:', error);
+                alert(error.message || 'Failed to add lesson');
+            }
+        }
+
+        async function loadModules() {
+            try {
+                const res = await fetch(`${API_URL}/courses/${courseId}/structure`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('modulesList');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No modules yet.</p>';
+                    window._modulesCache = [];
+                    window._lessonsCount = {};
+                    return;
+                }
+
+                window._modulesCache = data.data;
+                window._lessonsCount = {};
+                data.data.forEach(m => { window._lessonsCount[m.id] = (m.lessons || []).length; });
+
+                container.innerHTML = data.data.map(module => `
+                    <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #0891b2;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0; color: #333;">${module.title}</h4>
+                                <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 13px;">${module.description || 'No description'}</p>
+                            </div>
+                            <button class="btn btn-sm" style="background: #e0f2fe; color: #0369a1;" onclick="openCreateLessonPage(${module.id})">+ Add Lesson</button>
+                        </div>
+                        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                            ${(module.lessons && module.lessons.length > 0) ? module.lessons.map(lesson => `
+                                <div style="padding: 10px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px;">
+                                    <strong>${lesson.title}</strong>
+                                    <span style="color: var(--text-muted); font-size: 12px;"> • ${lesson.lesson_type || 'lesson'} • ${lesson.duration || 0} min</span>
+                                    ${lesson.is_free ? '<span style="margin-left:8px; color:#16a34a; font-size:12px;">Free</span>' : ''}
+                                </div>
+                            `).join('') : '<p style="text-align: center; color: var(--text-muted); padding: 10px;">No lessons yet.</p>'}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading modules:', error);
+            }
+        }
+
+        async function createAssignment(title, description, dueDate, maxScore) {
+            try {
+                const res = await fetch(`${API_URL}/instructor/assignments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: parseInt(courseId),
+                        title,
+                        description,
+                        dueDate,
+                        maxScore: parseFloat(maxScore)
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('successAlert').textContent = 'Assignment created successfully!';
+                    document.getElementById('successAlert').style.display = 'block';
+                    loadAssignments();
+                    setTimeout(() => document.getElementById('successAlert').style.display = 'none', 3000);
+                } else {
+                    throw new Error(data.message || 'Failed to create assignment');
+                }
+            } catch (error) {
+                console.error('Error creating assignment:', error);
+                document.getElementById('errorAlert').textContent = error.message;
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }
+
+        async function loadAssignments() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/assignments?courseId=${courseId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('assignmentsList');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No assignments yet.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(assignment => `
+                    <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #0891b2;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0; color: #333;">${assignment.title}</h4>
+                                <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 13px;">Due: ${new Date(assignment.due_date).toLocaleDateString()} | Max Score: ${assignment.max_score}</p>
+                            </div>
+                            <button class="btn btn-sm" style="background: #fee2e2; color: #ef4444;" onclick="deleteAssignment(${assignment.id})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+            }
+        }
+
+        async function deleteAssignment(assignmentId) {
+            if (!confirm('Delete this assignment?')) return;
+            try {
+                const res = await fetch(`${API_URL}/assignments/${assignmentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadAssignments();
+                } else {
+                    alert('Failed to delete assignment');
+                }
+            } catch (error) {
+                console.error('Error deleting assignment:', error);
+            }
+        }
+
+                function openCreateQuizPage() {
+            window.location.href = `/quiz-create.html?courseId=${courseId}`;
+        }
+        function openQuizQuestions(quizId) {
+            window.location.href = `/quiz-questions.html?courseId=${courseId}&quizId=${quizId}`;
+        }
+        function openQuizResults(quizId) {
+            window.location.href = `/quiz-results.html?courseId=${courseId}&quizId=${quizId}`;
+        }
+
+        // Session functions
+        function openScheduleSessionPage() {
+            window.location.href = `/schedule-session.html?courseId=${courseId}`;
+        }
+
+        async function scheduleSession(title, sessionDate, description) {
+            try {
+                const res = await fetch(`${API_URL}/instructor/meetings`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseId: courseId,
+                        title,
+                        meetingDate: sessionDate,
+                        description: description || ''
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('successAlert').textContent = 'Session scheduled successfully!';
+                    document.getElementById('successAlert').style.display = 'block';
+                    loadSessions();
+                    loadQuizzes();
+                    setTimeout(() => document.getElementById('successAlert').style.display = 'none', 3000);
+                } else {
+                    throw new Error(data.message || 'Failed to schedule session');
+                }
+            } catch (error) {
+                console.error('Error scheduling session:', error);
+                document.getElementById('errorAlert').textContent = error.message;
+                document.getElementById('errorAlert').style.display = 'block';
+            }
+        }
+
+        async function loadQuizzes() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/quizzes?courseId=${courseId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('quizzesList');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No quizzes yet.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(quiz => `
+                    <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #0891b2;">
+                        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                            <div style="flex:1;">
+                                <h4 style="margin:0; color:#333;">${quiz.title}</h4>
+                                <div style="font-size:12px; color: var(--text-muted); margin-top:4px;">
+                                    Time: ${quiz.time_limit || 0} min � Pass: ${quiz.passing_score || 0} � Attempts: ${quiz.max_attempts || 0}
+                                </div>
+                            </div>
+                            <div style="text-align:right; font-size:12px; color: var(--text-muted);">
+                                <div>${quiz.total_attempts || 0} Attempts</div>
+                                <div>Avg: ${quiz.avg_score ? Number(quiz.avg_score).toFixed(1) : 0}</div>
+                            </div>
+                        </div>
+                        <p style="margin: 12px 0 0 0; color: var(--text-muted); font-size: 13px;">${quiz.description || ''}</p>
+                        <div style="margin-top: 12px; display:flex; gap:8px;">
+                            <button class="btn btn-primary btn-sm" onclick="openQuizQuestions(${quiz.id})">Add Questions</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openQuizResults(${quiz.id})">View Results</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading quizzes:', error);
+            }
+        }
+
+        async function loadSessions() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/meetings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('sessionsList');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No sessions scheduled yet.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.data
+                    .filter(session => session.course_id == courseId)
+                    .map(session => `
+                    <div style="padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #0891b2;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0; color: #333;">${session.title}</h4>
+                                <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 13px;">?? ${new Date(session.meeting_date).toLocaleString()}</p>
+                            </div>
+                            <button class="btn btn-sm" style="background: #fee2e2; color: #ef4444;" onclick="deleteSession(${session.id})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        async function deleteSession(sessionId) {
+            if (!confirm('Cancel this session?')) return;
+            try {
+                const res = await fetch(`${API_URL}/instructor/meetings/${sessionId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadSessions();
+                    loadQuizzes();
+                } else {
+                    alert('Failed to delete session');
+                }
+            } catch (error) {
+                console.error('Error deleting session:', error);
+            }
+        }
+
+        // Load assignments and sessions when course loads
+        function loadCourseExtra() {
+            loadModules();
+            loadAssignments();
+            loadSessions();
+            loadQuizzes();
+        }
+
+        // Call the extra load after initial course load
+        setTimeout(loadCourseExtra, 500);
+    </script>
+</body>
+</html>
+
+
+
+
+

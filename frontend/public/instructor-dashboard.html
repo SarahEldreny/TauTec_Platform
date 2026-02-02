@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard - TauTec</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme Palette */
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sidebar: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+
+            /* Instructor Theme (Slightly cooler/more serious or consistent w/ Student) */
+            --primary: #06b6d4;
+            --primary-dark: #0891b2;
+            --primary-light: #ecfeff;
+            --secondary: #8b5cf6;
+            --secondary-light: #f5f3ff;
+            --accent: #f43f5e;
+
+            --gradient-primary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+            --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: var(--bg-sidebar);
+            z-index: 100;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .logo h2 {
+            font-weight: 800;
+            font-size: 26px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            padding-left: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-body);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .user-details h4 {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(6, 182, 212, 0.2);
+        }
+
+        .nav-item.active span {
+            color: white !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        /* Cards */
+        .gradient-card,
+        .course-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-card:hover,
+        .course-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-dark);
+        }
+
+        /* Hero */
+        .hero-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 24px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--gradient-primary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-top: 8px;
+            color: var(--text-main);
+        }
+
+        /* Tabs */
+        .tabs-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: white;
+            padding: 6px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            gap: 8px;
+            max-width: 600px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-trigger {
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .tab-trigger:hover {
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .tab-trigger.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Buttons & Badges */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-warning {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .course-thumbnail {
+            height: 160px;
+            background: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>TAU TEC</h2>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">👨‍🏫</div>
+            <div class="user-details">
+                <h4 id="userName">Instructor</h4><span>Instructor Account</span>
+            </div>
+        </div>
+        <nav>
+            <div class="nav-item active" onclick="switchTab('courses')"><span>📊</span> Dashboard</div>
+            <div class="nav-item" onclick="switchTab('sessions')"><span>📅</span> Sessions</div>
+            <div class="nav-item" onclick="switchTab('assignments')"><span>📝</span> Assignments</div>
+            <div class="nav-item" onclick="window.location.href='/messages.html'"><span>💬</span> Messages</div>
+            <div class="nav-item" onclick="window.location.href='/notifications.html'"><span>🔔</span> Notifications</div>
+        </nav>
+        <div class="sidebar-footer" style="margin-top: auto;">
+            <div class="nav-item" onclick="window.location.href='/courses-create.html'" style="color: var(--primary);">
+                <span>➕</span> Create Course</div>
+            <div class="nav-item" onclick="logout()" style="color: var(--accent); margin-top: 10px;"><span>🚪</span>
+                Logout</div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <section id="dashboard" class="section active">
+            <!-- Hero -->
+            <div class="hero-card">
+                <h1>Welcome back, <span id="headerName" style="color: var(--primary-dark);">Instructor</span>! 👋</h1>
+                <p>Manage your courses and inspire students</p>
+                <button onclick="window.location.href='/courses-create.html'" class="btn btn-primary"
+                    style="margin-top: 20px;">+ Create New Course</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="gradient-card" onclick="switchTab('courses')" style="cursor: pointer;">
+                    <h3 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">My Courses</h3>
+                    <div id="totalCourses" class="stat-value" style="color: var(--secondary);">0</div>
+                </div>
+                <div class="gradient-card">
+                    <h3 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Total Students
+                    </h3>
+                    <div id="totalStudents" class="stat-value" style="color: var(--primary);">0</div>
+                </div>
+                <div class="gradient-card" onclick="switchTab('sessions')" style="cursor: pointer;">
+                    <h3 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Sessions</h3>
+                    <div id="upcomingSessions" class="stat-value" style="color: var(--accent);">0</div>
+                </div>
+                <div class="gradient-card" onclick="switchTab('assignments')" style="cursor: pointer;">
+                    <h3 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Pending Reviews
+                    </h3>
+                    <div id="pendingReviews" class="stat-value" style="color: var(--secondary);">0</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-list">
+                <div class="tab-trigger active" onclick="switchTab('courses')" id="tab-courses">Courses</div>
+                <div class="tab-trigger" onclick="switchTab('sessions')" id="tab-sessions">Sessions</div>
+                <div class="tab-trigger" onclick="switchTab('assignments')" id="tab-assignments">Assignments</div>
+            </div>
+
+            <!-- Tab Content: Courses -->
+            <div id="content-courses" class="tab-content active">
+                <div class="courses-grid" id="dashboardCourses"></div>
+            </div>
+
+            <!-- Tab Content: Sessions -->
+            <div id="content-sessions" class="tab-content">
+                <div class="gradient-card" style="min-height: 200px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                        <h3>Upcoming Sessions</h3>
+                        <button class="btn btn-primary btn-sm" onclick="scheduleSession()">+ Schedule</button>
+                    </div>
+                    <div id="sessionsList" style="display: flex; flex-direction: column; gap: 15px;">
+                        <p style="color: var(--text-muted); text-align: center;">Loading sessions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Assignments -->
+            <div id="content-assignments" class="tab-content">
+                <div class="gradient-card">
+                    <h3>Pending Submissions</h3>
+                    <div id="assignmentsList" style="margin-top: 15px;">
+                        <p style="color: var(--text-muted); text-align: center;">No pending submissions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token || (user.role !== 'instructor' && user.role !== 'admin')) {
+            window.location.href = '/login.html';
+        }
+
+        document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+        document.getElementById('headerName').textContent = user.first_name;
+
+        // --- Tab Logic ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-trigger').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`content-${tabName}`).classList.add('active');
+
+            if (tabName === 'sessions') loadSessions();
+            if (tabName === 'assignments') loadAssignmentsReview();
+        }
+
+        // --- Data Loading ---
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/dashboard/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('totalCourses').textContent = data.data.totalCourses || 0;
+                    document.getElementById('totalStudents').textContent = data.data.totalStudents || 0;
+                    document.getElementById('pendingReviews').textContent = data.data.pendingGrading || 0;
+                }
+                loadMyCourses();
+                loadSessions();
+            } catch (error) { console.error('Dashboard load error:', error); }
+        }
+
+        async function loadMyCourses() {
+            try {
+                const res = await fetch(`${API_URL}/courses/instructor/my-courses`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                console.log('Courses response:', data);
+                if (data.success) {
+                    renderCourses(data.data);
+                } else if (data.data) {
+                    // Handle case where API returns data but success is false
+                    renderCourses(data.data);
+                } else {
+                    renderCourses([]);
+                }
+            } catch (error) { console.error('Courses error:', error); }
+        }
+
+        function renderCourses(courses) {
+            const container = document.getElementById('dashboardCourses');
+            console.log('Rendering courses:', courses);
+            if (!courses || courses.length === 0) {
+                container.innerHTML = `<div class="gradient-card" style="grid-column: 1/-1; text-align:center; padding:40px;"><div style="font-size: 40px; margin-bottom: 10px;">📚</div><p>No courses created yet. <a href="/courses-create.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">Create your first course</a></p></div>`;
+                return;
+            }
+            container.innerHTML = courses.map(course => `
+                 <div class="course-card">
+                    <div class="course-thumbnail">
+                        ${course.thumbnail ? `<img src="${course.thumbnail}" style="width:100%; height:100%; object-fit:cover;">` : '📚'}
+                        <span class="badge ${course.status === 'published' ? 'badge-success' : 'badge-warning'}" style="position:absolute; top:10px; right:10px;">${course.status}</span>
+                    </div>
+                    <div class="course-content">
+                        <h3>${course.title}</h3>
+                        <div style="display: flex; gap: 15px; font-size: 13px; color: var(--text-muted); margin: 10px 0;">
+                            <span>${course.enrollment_count || 0} Students</span>
+                            <span>⭐ ${course.rating || '0.0'}</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                            ${course.status === 'draft' ? `<button class="btn btn-primary btn-sm" style="background: #10b981; flex:1" onclick="publishCourse(${course.id})">📤 Publish</button>` : ''}
+                            <button class="btn btn-primary btn-sm" ${course.status === 'draft' ? 'style="flex:1"' : ''} onclick="window.location.href='/course-edit.html?id=${course.id}'">Edit</button>
+                            <button class="btn btn-sm" style="background: #fee2e2; color: #ef4444;" onclick="deleteCourse(${course.id})">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadSessions() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/meetings`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.status === 404) { return; }
+                const data = await res.json();
+                if (data.success) {
+                    const meetings = data.data || [];
+                    document.getElementById('upcomingSessions').textContent = meetings.length;
+
+                    if (meetings.length > 0) {
+                        document.getElementById('sessionsList').innerHTML = meetings.map(m => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-body); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color);">
+                                <div>
+                                    <h4 style="margin-bottom:4px; color: var(--text-main);">${m.title}</h4>
+                                    <div style="font-size:12px; color:var(--text-muted);">
+                                        📅 ${new Date(m.meeting_date).toLocaleDateString()} • 
+                                        ⏰ ${new Date(m.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                    <div style="font-size:12px; color:var(--primary-dark); margin-top: 2px;">${m.course_title || 'General'}</div>
+                                </div>
+                                <div>
+                                    ${m.meeting_link ? `<a href="${m.meeting_link}" target="_blank" class="btn btn-primary btn-sm" style="margin-right:5px;">Join</a>` : ''}
+                                    <button class="btn btn-sm" style="background: #fee2e2; color: #ef4444;" onclick="cancelMeeting(${m.id})">Cancel</button>
+                                </div>
+                            </div>
+                         `).join('');
+                    } else {
+                        document.getElementById('sessionsList').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No upcoming sessions.</p>';
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadAssignmentsReview() {
+            try {
+                const res = await fetch(`${API_URL}/instructor/assignments`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('assignmentsList');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted);">No assignments yet. Create one in a course.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(assignment => `
+                    <div class="gradient-card" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <h4 style="margin: 0 0 5px 0;">${assignment.title}</h4>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 13px;">📚 ${assignment.course_title}</p>
+                                <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 13px;">Due: ${new Date(assignment.due_date).toLocaleDateString()}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="background: #dcfce7; color: #166534; padding: 8px 12px; border-radius: 6px; font-weight: 600; margin-bottom: 8px;">
+                                    ${assignment.pending_grading} Pending
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${assignment.total_submissions} Submissions</div>
+                            </div>
+                        </div>
+                        <p style="margin: 12px 0 0 0; color: var(--text-muted); font-size: 13px;">${assignment.description}</p>
+                        <button class="btn btn-primary btn-sm" style="margin-top: 12px; width: 100%;" onclick="viewAssignmentSubmissions(${assignment.id}, '${assignment.title}')">Review Submissions</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+                document.getElementById('assignmentsList').innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-muted);">Error loading assignments.</p>';
+            }
+        }
+
+        function viewAssignmentSubmissions(assignmentId, assignmentTitle) {
+            window.location.href = `/assignment-review.html?id=${assignmentId}`;
+        }
+
+        function scheduleSession() { alert('To schedule a session, please go to the Course Edit page -> Meetings tab.'); }
+
+        async function publishCourse(id) {
+            if (!confirm('Publish this course? Students will be able to enroll.')) return;
+            
+            try {
+                const res = await fetch(`${API_URL}/courses/${id}/publish`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('✓ Course published successfully!');
+                    loadMyCourses();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to publish course'));
+                }
+            } catch (error) {
+                console.error('Publish error:', error);
+                alert('Failed to publish course');
+            }
+        }
+
+        async function deleteCourse(id) {
+            if (confirm('Delete this course?')) { alert('Delete functionality to be implemented.'); }
+        }
+        function cancelMeeting(id) {
+            if (confirm('Cancel this meeting?')) {
+                fetch(`${API_URL}/instructor/meetings/${id}`, {
+                    method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+                }).then(() => { loadSessions(); });
+            }
+        }
+        function logout() {
+            if (confirm('Logout?')) {
+                localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login.html';
+            }
+        }
+
+        loadDashboard();
+        
+        // Also load courses again after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            if (document.getElementById('dashboardCourses')) {
+                loadMyCourses();
+            }
+        }, 500);
+    </script>
+</body>
+
+</html>
+

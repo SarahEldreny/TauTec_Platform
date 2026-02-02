@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Courses</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Course Debug Info</h1>
+    <h2>Published Courses (/api/courses)</h2>
+    <table id="publishedCourses">
+        <tr><th colspan="5">Loading...</th></tr>
+    </table>
+    
+    <h2>All Courses (/api/courses/admin/all)</h2>
+    <table id="allCourses">
+        <tr><th colspan="5">Loading...</th></tr>
+    </table>
+    
+    <h2>Actions</h2>
+    <button onclick="publishAllDrafts()">Publish All Draft Courses</button>
+    <p id="message"></p>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        
+        async function loadPublishedCourses() {
+            try {
+                const res = await fetch(`${API_URL}/courses`);
+                const data = await res.json();
+                renderCourses('publishedCourses', data.data || []);
+            } catch (error) {
+                document.getElementById('publishedCourses').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+            }
+        }
+        
+        async function loadAllCourses() {
+            try {
+                const res = await fetch(`${API_URL}/courses/admin/all`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    renderCourses('allCourses', data.data || []);
+                } else {
+                    document.getElementById('allCourses').innerHTML = `<tr><td colspan="5">Error: ${data.message}</td></tr>`;
+                }
+            } catch (error) {
+                document.getElementById('allCourses').innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+            }
+        }
+        
+        function renderCourses(tableId, courses) {
+            const table = document.getElementById(tableId);
+            if (!courses || courses.length === 0) {
+                table.innerHTML = `<tr><td colspan="5">No courses found</td></tr>`;
+                return;
+            }
+            
+            let html = `<tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Instructor</th>
+                <th>Created</th>
+            </tr>`;
+            
+            courses.forEach(c => {
+                html += `<tr>
+                    <td>${c.id}</td>
+                    <td>${c.title}</td>
+                    <td><strong>${c.status || c.is_published || 'unknown'}</strong></td>
+                    <td>${c.instructor_first_name} ${c.instructor_last_name}</td>
+                    <td>${c.created_at ? new Date(c.created_at).toLocaleDateString() : 'N/A'}</td>
+                </tr>`;
+            });
+            
+            table.innerHTML = html;
+        }
+        
+        async function publishAllDrafts() {
+            try {
+                const res = await fetch(`${API_URL}/courses/debug/publish-all-drafts`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                document.getElementById('message').innerHTML = data.success ? 
+                    '✓ ' + data.message : 
+                    '✕ ' + data.message;
+                setTimeout(() => {
+                    loadPublishedCourses();
+                    loadAllCourses();
+                }, 500);
+            } catch (error) {
+                document.getElementById('message').innerHTML = '✕ Error: ' + error.message;
+            }
+        }
+        
+        // Load on page load
+        loadPublishedCourses();
+        loadAllCourses();
+    </script>
+</body>
+</html>
